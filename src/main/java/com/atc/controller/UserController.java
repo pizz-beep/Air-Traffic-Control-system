@@ -33,6 +33,3 @@ public class UserController {
         return "redirect:/users";
     }
 }
-
-
-7. View Layer — Thymeleaf Templates

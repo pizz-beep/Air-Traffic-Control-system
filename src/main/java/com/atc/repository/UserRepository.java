@@ -12,6 +12,3 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByEmail(String email);
 }
-
-
-5. Service Layer

@@ -38,6 +38,3 @@ public class Runway {
         this.status = RunwayStatus.AVAILABLE;
     }
 }
-
-
-4. Repository Layer

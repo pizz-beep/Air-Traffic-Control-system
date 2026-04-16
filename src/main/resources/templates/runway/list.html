@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>ATC - Runway Status</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+</head>
+<body class="container mt-4">
+<h2>Runway Status</h2>
+<table class="table table-bordered table-striped">
+  <thead class="table-dark">
+    <tr>
+      <th>Runway ID</th>
+      <th>Direction</th>
+      <th>Length (m)</th>
+      <th>Status</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr th:each="r : ${runways}">
+      <td th:text="${r.runwayId}"></td>
+      <td th:text="${r.direction}"></td>
+      <td th:text="${r.lengthMeters}"></td>
+      <td th:text="${r.status}"></td>
+      <td>
+        <form th:action="@{/runways/{id}/release(id=${r.runwayId})}" method="post" style="display:inline" th:if="${r.status.name() == 'OCCUPIED'}">
+          <button class="btn btn-warning btn-sm">Release</button>
+        </form>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<a href="/runways/assign" class="btn btn-primary">Assign Runway</a>
+<a href="/flights" class="btn btn-secondary">Back to Dashboard</a>
+</body>
+</html>

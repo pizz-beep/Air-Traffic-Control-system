@@ -5,7 +5,7 @@ import lombok.*;
 
 @Entity
 @Table(name = "administrators")
-@Data @NoArgsConstructor @AllArgsConstructor
+@Data @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class Administrator extends User {
 
