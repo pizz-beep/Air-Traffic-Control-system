@@ -242,6 +242,21 @@ http://localhost:8080
 * Clean separation of concerns (Model, Service, Controller)
 * Extensible and scalable design
 
+## Design Patterns & Principles Applied
+
+### Design Principles
+1. **Single Responsibility Principle (SRP)**: Clean separation of concerns is maintained. Each layer handles precisely one responsibility—Controllers handle HTTP requests, Services execute business logic, and Repositories manage database interaction.
+2. **Open/Closed Principle (OCP)**: The abstract `User` base class serves as an extension point. System roles like `Pilot`, `ATCController`, and `Administrator` extend `User` without modifying the core user handling and authentication structure.
+3. **Liskov Substitution Principle (LSP)**: Derived classes (`Pilot`, `ATCController`, `Administrator`) can be substituted for their base class (`User`) seamlessly within the repository and security layers.
+4. **Dependency Inversion Principle (DIP)**: Controller and Service layers depend on abstractions (e.g., `JpaRepository` interfaces) injected by Spring rather than constructing concrete low-level implementation details themselves.
+
+### Design Patterns
+1. **Model-View-Controller (MVC) Pattern (Architectural)**: The overall application structure divides data handling, UI, and request processing strictly into Models, Thymeleaf Views, and Controllers.
+2. **Template Method Pattern (Behavioral)**: The abstract `User.java` guarantees a blueprint defining `login()` and `logout()` signatures, enforcing subclasses to enact specific polymorphic behavioral implementations.
+3. **Facade Pattern (Structural)**: Dedicated Service classes (`FlightService`, `RunwayService`) act as a Facade. They provide streamlined, simplified access interfaces to the Controllers, hiding the complex business validations and internal Repository operations.
+4. **Strategy Pattern (Behavioral)**: `SecurityConfig` leverages the Strategy pattern through `PasswordEncoder`. The application provides `BCryptPasswordEncoder` as a concrete algorithm strategy injected securely.
+5. **Singleton Pattern (Creational)**: Ensures `FlightService`, `RunwayService`, and Repositories are instantiated identically as thread-safe Singletons managed by the Spring IoC container.
+
 ---
 
 ## Future Enhancements

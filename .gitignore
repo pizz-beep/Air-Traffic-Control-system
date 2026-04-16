@@ -1,1 +1,20 @@
-Mini Project Guidelines (1).pdf
+# Project Requirements Documents (Binary blobs that don't need tracking)
+*.pdf
+*.docx
+
+# Spring Boot & Java Standard Ignores
+target/
+*.class
+*.log
+*.jar
+*.war
+
+# IDE specific files
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Temporary / Extraction
+venv/
+*.txt

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>ATC — Flight List</title>
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+</head>
+<body class="container mt-4">
+
+<h2>Flight Plans</h2>
+
+<table class="table table-bordered table-striped">
+  <thead class="table-dark">
+    <tr>
+      <th>Flight ID</th><th>From</th><th>To</th>
+      <th>Status</th><th>Remarks</th><th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr th:each="f : ${flights}">
+      <td th:text="${f.flightId}"/>
+      <td th:text="${f.source}"/>
+      <td th:text="${f.destination}"/>
+      <td th:text="${f.status}"/>
+      <td th:text="${f.remarks}"/>
+      <td>
+        <form th:action="@{/flights/{id}/approve(id=${f.flightId})}"
+              method="post" style="display:inline">
+          <button class="btn btn-success btn-sm">Approve</button>
+        </form>
+        <form th:action="@{/flights/{id}/reject(id=${f.flightId})}"
+              method="post" style="display:inline">
+          <input name="reason" placeholder="Reason" class="form-control-sm"/>
+          <button class="btn btn-danger btn-sm">Reject</button>
+        </form>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<a href="/flights/submit" class="btn btn-primary">+ Submit New Flight</a>
+</body>
+</html>
+
+
