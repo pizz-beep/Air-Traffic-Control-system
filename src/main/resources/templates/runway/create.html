@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Add Runway — ATC System</title>
+  <meta name="description" content="Admin: Add a new runway to the system"/>
+  <link rel="stylesheet" th:href="@{/css/atc-theme.css}"/>
+</head>
+<body>
+<div class="atc-shell">
+
+  <!-- ── Sidebar ── -->
+  <aside class="atc-sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">✈</div>
+      <h1>ATC System</h1>
+      <span>Administrator Panel</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="/dashboard" class="nav-link-item" id="nav-dashboard">
+        <span class="nav-icon">🏠</span> Dashboard
+      </a>
+      <div class="nav-section-label">Management</div>
+      <a href="/users" class="nav-link-item" id="nav-users"
+         sec:authorize="hasRole('ADMINISTRATOR')">
+        <span class="nav-icon">👥</span> Manage Users
+      </a>
+      <a href="/users/create" class="nav-link-item" id="nav-create-user"
+         sec:authorize="hasRole('ADMINISTRATOR')">
+        <span class="nav-icon">➕</span> Create User
+      </a>
+      <div class="nav-section-label">Runways</div>
+      <a href="/runways" class="nav-link-item" id="nav-runways">
+        <span class="nav-icon">🛬</span> All Runways
+      </a>
+      <a href="/runways/create" class="nav-link-item active" id="nav-create-runway"
+         sec:authorize="hasRole('ADMINISTRATOR')">
+        <span class="nav-icon">➕</span> Add Runway
+      </a>
+      <div class="nav-section-label">Flights</div>
+      <a href="/flights" class="nav-link-item" id="nav-flights">
+        <span class="nav-icon">✈</span> All Flights
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar">A</div>
+        <div class="user-info">
+          <div class="user-name" sec:authentication="name">Admin</div>
+          <div class="user-role">Administrator</div>
+        </div>
+      </div>
+      <form th:action="@{/logout}" method="post">
+        <button class="btn-atc btn-ghost w-full" type="submit" id="logoutBtn">⎋ Sign Out</button>
+      </form>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="atc-main">
+    <header class="atc-topbar">
+      <div class="topbar-title">
+        Add New Runway
+        <small>Register a runway in the system</small>
+      </div>
+      <div class="flex-center gap-12">
+        <a href="/runways" class="btn-atc btn-ghost btn-sm" id="btn-back">← Runway Board</a>
+      </div>
+    </header>
+
+    <div class="atc-content" style="max-width: 580px;">
+
+      <!-- Non-admin locked state -->
+      <div sec:authorize="!hasRole('ADMINISTRATOR')" class="glass-card" style="text-align:center;padding:48px">
+        <div style="font-size:48px;margin-bottom:16px">🔒</div>
+        <h2 style="margin-bottom:12px">Administrators Only</h2>
+        <p class="text-muted" style="margin-bottom:24px">
+          Creating runways is restricted to Administrator accounts.
+        </p>
+        <a href="/dashboard" class="btn-atc btn-primary" id="btn-back-dash">← Back to Dashboard</a>
+      </div>
+
+      <!-- Admin form -->
+      <div sec:authorize="hasRole('ADMINISTRATOR')">
+        <div class="glass-card">
+          <form action="/runways/create" method="post" id="createRunwayForm">
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="runwayId">🛬 Runway ID</label>
+                <input id="runwayId" type="text" name="runwayId" class="form-control"
+                       placeholder="e.g. RWY-09L" required
+                       pattern="[A-Za-z0-9\-]+"
+                       title="Letters, numbers, and hyphens only"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="direction">🧭 Direction / Heading</label>
+                <input id="direction" type="text" name="direction" class="form-control"
+                       placeholder="e.g. 09L, 27R, 18" required/>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="lengthMeters">📏 Length (metres)</label>
+              <input id="lengthMeters" type="number" name="lengthMeters" class="form-control"
+                     placeholder="e.g. 3200" min="500" max="6000"/>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="flex-center gap-8">
+              <button type="submit" class="btn-atc btn-primary" id="createBtn">
+                ➕ Create Runway
+              </button>
+              <a href="/runways" class="btn-atc btn-ghost" id="cancelBtn">Cancel</a>
+            </div>
+          </form>
+        </div>
+
+        <!-- Reference card -->
+        <div class="glass-card mt-24">
+          <div class="section-header mb-0"><div><h2>Standard Runway IDs</h2></div></div>
+          <div class="divider"></div>
+          <div class="atc-table-wrap">
+            <table class="atc-table">
+              <thead>
+                <tr><th>Example ID</th><th>Direction</th><th>Typical Length</th></tr>
+              </thead>
+              <tbody>
+                <tr><td class="mono">RWY-09L</td><td>09L (East, Left)</td><td>3000–3500 m</td></tr>
+                <tr><td class="mono">RWY-27R</td><td>27R (West, Right)</td><td>3000–3500 m</td></tr>
+                <tr><td class="mono">RWY-18</td><td>18 (South)</td><td>2000–2800 m</td></tr>
+                <tr><td class="mono">RWY-36</td><td>36 (North)</td><td>2000–2800 m</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- /admin-only -->
+
+    </div>
+  </main>
+</div>
+</body>
+</html>

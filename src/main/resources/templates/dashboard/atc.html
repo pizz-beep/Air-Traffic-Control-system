@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ATC Dashboard — Air Traffic Control</title>
+  <meta name="description" content="Air Traffic Controller workstation — monitor, approve, and assign runways"/>
+  <link rel="stylesheet" th:href="@{/css/atc-theme.css}"/>
+</head>
+<body>
+<div class="atc-shell">
+
+  <!-- ── Sidebar ── -->
+  <aside class="atc-sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">🗼</div>
+      <h1>ATC Tower</h1>
+      <span>Controller Workstation</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="/dashboard" class="nav-link-item active" id="nav-dashboard">
+        <span class="nav-icon">🏠</span> Dashboard
+      </a>
+
+      <div class="nav-section-label">Flight Control</div>
+      <a href="/flights" class="nav-link-item" id="nav-flights">
+        <span class="nav-icon">✈</span> Flight Plans
+      </a>
+      <a href="/flights/monitor" class="nav-link-item" id="nav-monitor">
+        <span class="nav-icon">📡</span> Live Monitor
+      </a>
+
+      <div class="nav-section-label">Runway Operations</div>
+      <a href="/runways" class="nav-link-item" id="nav-runways">
+        <span class="nav-icon">🛬</span> All Runways
+      </a>
+      <a href="/runways/assign" class="nav-link-item" id="nav-assign">
+        <span class="nav-icon">📋</span> Assign Runway
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" style="background: linear-gradient(135deg,#3b82f6,#06b6d4)">C</div>
+        <div class="user-info">
+          <div class="user-name" sec:authentication="name">Controller</div>
+          <div class="user-role">ATC Controller</div>
+        </div>
+      </div>
+      <form th:action="@{/logout}" method="post">
+        <button class="btn-atc btn-ghost w-full" type="submit" id="logoutBtn">⎋ Sign Out</button>
+      </form>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="atc-main">
+    <header class="atc-topbar">
+      <div class="topbar-title">
+        Control Tower Dashboard
+        <small>Real-time flight operations centre</small>
+      </div>
+      <div class="flex-center gap-12">
+        <span class="badge badge-atc">ATC Controller</span>
+      </div>
+    </header>
+
+    <div class="atc-content">
+
+      <!-- Stat Cards -->
+      <div class="stat-grid mb-24">
+        <div class="stat-card amber anim-delay-1">
+          <div class="stat-icon">⏳</div>
+          <div class="stat-value" th:text="${pendingCount != null ? pendingCount : '—'}">—</div>
+          <div class="stat-label">Pending Approval</div>
+        </div>
+        <div class="stat-card blue anim-delay-2">
+          <div class="stat-icon">📡</div>
+          <div class="stat-value" th:text="${activeCount != null ? activeCount : '—'}">—</div>
+          <div class="stat-label">Active Flights</div>
+        </div>
+        <div class="stat-card green anim-delay-3">
+          <div class="stat-icon">🛬</div>
+          <div class="stat-value" th:text="${availableRunways != null ? availableRunways : '—'}">—</div>
+          <div class="stat-label">Runways Available</div>
+        </div>
+        <div class="stat-card red anim-delay-4">
+          <div class="stat-icon">🚨</div>
+          <div class="stat-value" th:text="${emergencyCount != null ? emergencyCount : '—'}">—</div>
+          <div class="stat-label">Emergency</div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="section-header">
+        <div>
+          <h2>Workstation Actions</h2>
+          <p>Common ATC operations</p>
+        </div>
+      </div>
+      <div class="action-grid mb-24">
+        <a href="/flights" class="action-card" id="action-approve"
+           style="--action-color: var(--accent-amber)">
+          <div class="action-icon">✅</div>
+          <div class="action-title">Approve / Reject Flights</div>
+          <div class="action-desc">Review pending flight plans and issue clearances</div>
+        </a>
+        <a href="/flights/monitor" class="action-card" id="action-monitor"
+           style="--action-color: var(--accent-blue)">
+          <div class="action-icon">📡</div>
+          <div class="action-title">Live Airspace Monitor</div>
+          <div class="action-desc">Track all active and in-progress flights in real time</div>
+        </a>
+        <a href="/runways/assign" class="action-card" id="action-assign"
+           style="--action-color: var(--accent-green)">
+          <div class="action-icon">📋</div>
+          <div class="action-title">Assign Runway</div>
+          <div class="action-desc">Allocate an available runway to an approved flight</div>
+        </a>
+        <a href="/runways" class="action-card" id="action-runways"
+           style="--action-color: var(--accent-cyan)">
+          <div class="action-icon">🛬</div>
+          <div class="action-title">Runway Status Board</div>
+          <div class="action-desc">View all runway availability and release occupied ones</div>
+        </a>
+      </div>
+
+      <!-- API Endpoint Reference -->
+      <div class="section-header">
+        <div>
+          <h2>ATC Endpoint Reference</h2>
+          <p>Your authorised API endpoints</p>
+        </div>
+      </div>
+      <div class="glass-card">
+        <div class="atc-table-wrap">
+          <table class="atc-table">
+            <thead>
+              <tr><th>Method</th><th>Endpoint</th><th>Description</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge badge-approved">GET</span></td>
+                <td><span class="mono">/flights</span></td>
+                <td>View all flight plans</td>
+                <td><a href="/flights" class="btn-atc btn-ghost btn-xs" id="ep-flights">Open →</a></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-in-progress">POST</span></td>
+                <td><span class="mono">/flights/{id}/approve</span></td>
+                <td>Approve a flight plan</td>
+                <td><a href="/flights" class="btn-atc btn-ghost btn-xs" id="ep-approve">Open →</a></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-rejected">POST</span></td>
+                <td><span class="mono">/flights/{id}/reject</span></td>
+                <td>Reject a flight plan</td>
+                <td><a href="/flights" class="btn-atc btn-ghost btn-xs" id="ep-reject">Open →</a></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-approved">GET</span></td>
+                <td><span class="mono">/flights/monitor</span></td>
+                <td>Monitor active aircraft</td>
+                <td><a href="/flights/monitor" class="btn-atc btn-ghost btn-xs" id="ep-monitor">Open →</a></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-approved">GET</span></td>
+                <td><span class="mono">/runways</span></td>
+                <td>View all runways</td>
+                <td><a href="/runways" class="btn-atc btn-ghost btn-xs" id="ep-runways">Open →</a></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-in-progress">POST</span></td>
+                <td><span class="mono">/runways/assign</span></td>
+                <td>Assign runway to flight</td>
+                <td><a href="/runways/assign" class="btn-atc btn-ghost btn-xs" id="ep-assign">Open →</a></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-in-progress">POST</span></td>
+                <td><span class="mono">/runways/{id}/release</span></td>
+                <td>Release runway after landing</td>
+                <td><a href="/runways" class="btn-atc btn-ghost btn-xs" id="ep-release">Open →</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /atc-content -->
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title th:text="${status + ' — ' + title + ' | ATC System'}">Error — ATC System</title>
+  <link rel="stylesheet" th:href="@{/css/atc-theme.css}"/>
+</head>
+<body class="page-login">
+<div class="login-wrap" style="max-width:520px">
+  <div class="login-card" style="text-align:center">
+
+    <div style="font-size:56px; margin-bottom:16px" th:text="${icon}">⚠</div>
+
+    <div style="font-size:72px; font-weight:800; line-height:1;
+                background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+                -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+                margin-bottom: 8px;"
+         th:text="${status}">500</div>
+
+    <h1 style="font-size:20px; font-weight:700; margin-bottom:12px"
+        th:text="${title}">Error</h1>
+
+    <p style="font-size:13px; color:var(--text-muted); margin-bottom:24px; line-height:1.6"
+       th:text="${message}">An error occurred.</p>
+
+    <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap">
+      <a href="/dashboard" class="btn-atc btn-primary" id="btn-home">🏠 Go to Dashboard</a>
+      <a href="javascript:history.back()" class="btn-atc btn-ghost" id="btn-back">← Go Back</a>
+    </div>
+
+    <div class="divider"></div>
+
+    <p class="text-muted text-sm">
+      Attempted to access:
+      <span class="mono" style="color:var(--text-secondary)" th:text="${requestUri}">—</span>
+    </p>
+
+  </div>
+</div>
+</body>
+</html>

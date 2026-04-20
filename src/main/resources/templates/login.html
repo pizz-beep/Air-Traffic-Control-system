@@ -1,38 +1,69 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <title>ATC System - Login</title>
-  <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ATC System — Sign In</title>
+  <meta name="description" content="Air Traffic Control System — Secure Login"/>
+  <link rel="stylesheet" th:href="@{/css/atc-theme.css}"/>
 </head>
-<body class="container mt-5">
-<div class="row justify-content-center">
-  <div class="col-md-4">
-    <div class="card shadow-sm">
-      <div class="card-header bg-primary text-white">
-        <h4 class="mb-0">Air Traffic Control Login</h4>
+<body class="page-login">
+
+<div class="login-wrap">
+  <div class="login-card">
+    <!-- Logo -->
+    <div class="login-logo">
+      <div class="logo-ring">✈</div>
+      <h1>ATC Control</h1>
+      <p>Air Traffic Management System</p>
+    </div>
+
+    <!-- Error / Logout Alerts -->
+    <div th:if="${param.error}" class="alert-flash alert-error">
+      ⚠ Invalid credentials. Please try again.
+    </div>
+    <div th:if="${param.logout}" class="alert-flash alert-success">
+      ✓ You have been logged out securely.
+    </div>
+
+    <!-- Login Form -->
+    <form th:action="@{/users/login}" method="post" id="loginForm">
+      <div class="form-group">
+        <label class="form-label" for="username">Email Address</label>
+        <input id="username" type="email" name="username" class="form-control"
+               placeholder="your@email.com" required autocomplete="username"/>
       </div>
-      <div class="card-body">
-        <div th:if="${param.error}" class="alert alert-danger">
-          Invalid username and password.
-        </div>
-        <div th:if="${param.logout}" class="alert alert-success">
-          You have been logged out.
-        </div>
-        <form th:action="@{/users/login}" method="post">
-          <div class="mb-3">
-            <label class="form-label">Email / Username</label>
-            <input type="text" name="username" class="form-control" required/>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Password</label>
-            <input type="password" name="password" class="form-control" required/>
-          </div>
-          <button type="submit" class="btn btn-primary w-100">Sign In</button>
-        </form>
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <input id="password" type="password" name="password" class="form-control"
+               placeholder="••••••••" required autocomplete="current-password"/>
+      </div>
+      <button type="submit" class="btn-atc btn-primary w-full" id="signInBtn">
+        ✈ Sign In
+      </button>
+    </form>
+
+    <!-- Demo Credentials -->
+    <div class="login-creds">
+      <p>Demo Credentials</p>
+      <div class="cred-row">
+        <span class="role-pill">Admin</span>
+        <span>admin@atc.com</span>
+        <code>admin123</code>
+      </div>
+      <div class="cred-row">
+        <span class="role-pill" style="background:rgba(6,182,212,0.15);color:#06b6d4">ATC</span>
+        <span>atc@atc.com</span>
+        <code>atc123</code>
+      </div>
+      <div class="cred-row">
+        <span class="role-pill" style="background:rgba(34,197,94,0.15);color:#22c55e">Pilot</span>
+        <span>pilot@atc.com</span>
+        <code>pilot123</code>
       </div>
     </div>
   </div>
 </div>
+
 </body>
 </html>

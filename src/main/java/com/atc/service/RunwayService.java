@@ -21,12 +21,10 @@ public class RunwayService {
     @Transactional
     public Runway allocateRunway(String runwayId, String flightId) {
         Runway runway = runwayRepository.findByRunwayId(runwayId)
-            .orElseThrow(() -> new RuntimeException(
-                "Runway not found: " + runwayId));
+            .orElseThrow(() -> new RuntimeException("Runway not found: " + runwayId));
 
         Flight flight = flightRepository.findByFlightId(flightId)
-            .orElseThrow(() -> new RuntimeException(
-                "Flight not found: " + flightId));
+            .orElseThrow(() -> new RuntimeException("Flight not found: " + flightId));
 
         runway.assignRunway();
         flight.setRunway(runway);
@@ -40,10 +38,40 @@ public class RunwayService {
     @Transactional
     public Runway releaseRunway(String runwayId) {
         Runway runway = runwayRepository.findByRunwayId(runwayId)
-            .orElseThrow(() -> new RuntimeException(
-                "Runway not found: " + runwayId));
+            .orElseThrow(() -> new RuntimeException("Runway not found: " + runwayId));
         runway.releaseRunway();
         return runwayRepository.save(runway);
+    }
+
+    // Create a new runway (Admin)
+    @Transactional
+    public Runway createRunway(String runwayId, String direction, Integer lengthMeters) {
+        if (runwayRepository.findByRunwayId(runwayId).isPresent()) {
+            throw new RuntimeException("Runway ID already exists: " + runwayId);
+        }
+        Runway runway = new Runway();
+        runway.setRunwayId(runwayId);
+        runway.setDirection(direction);
+        runway.setLengthMeters(lengthMeters);
+        runway.setStatus(RunwayStatus.AVAILABLE);
+        return runwayRepository.save(runway);
+    }
+
+    // Update runway status (Admin)
+    @Transactional
+    public Runway setRunwayStatus(String runwayId, RunwayStatus status) {
+        Runway runway = runwayRepository.findByRunwayId(runwayId)
+            .orElseThrow(() -> new RuntimeException("Runway not found: " + runwayId));
+        runway.setStatus(status);
+        return runwayRepository.save(runway);
+    }
+
+    // Delete runway (Admin)
+    @Transactional
+    public void deleteRunway(String runwayId) {
+        Runway runway = runwayRepository.findByRunwayId(runwayId)
+            .orElseThrow(() -> new RuntimeException("Runway not found: " + runwayId));
+        runwayRepository.delete(runway);
     }
 
     public List<Runway> getAvailableRunways() {
@@ -53,6 +81,8 @@ public class RunwayService {
     public List<Runway> getAllRunways() {
         return runwayRepository.findAll();
     }
+
+    public long countByStatus(RunwayStatus status) {
+        return runwayRepository.findByStatus(status).size();
+    }
 }
-
-

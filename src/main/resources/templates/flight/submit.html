@@ -1,32 +1,151 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head><title>Submit Flight Plan</title>
-  <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Submit Flight Plan — ATC System</title>
+  <meta name="description" content="Pilot: Submit a new flight plan for ATC review"/>
+  <link rel="stylesheet" th:href="@{/css/atc-theme.css}"/>
 </head>
-<body class="container mt-4">
-<h2>Submit Flight Plan</h2>
-<form th:action="@{/flights/submit}" th:object="${flight}" method="post">
-  <div class="mb-3">
-    <label>Flight ID</label>
-    <input type="text" th:field="*{flightId}" class="form-control"/>
-  </div>
-  <div class="mb-3">
-    <label>Source Airport</label>
-    <input type="text" th:field="*{source}" class="form-control"/>
-  </div>
-  <div class="mb-3">
-    <label>Destination Airport</label>
-    <input type="text" th:field="*{destination}" class="form-control"/>
-  </div>
-  <div class="mb-3">
-    <label>Scheduled Departure</label>
-    <input type="datetime-local" th:field="*{scheduledDeparture}"
-           class="form-control"/>
-  </div>
-  <button type="submit" class="btn btn-primary">Submit Plan</button>
-  <a href="/flights" class="btn btn-secondary">Cancel</a>
-</form>
-</body></html>
+<body>
+<div class="atc-shell">
 
+  <!-- ── Sidebar ── -->
+  <aside class="atc-sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">🧑‍✈️</div>
+      <h1>Pilot Portal</h1>
+      <span>Flight Operations</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="/dashboard" class="nav-link-item" id="nav-dashboard">
+        <span class="nav-icon">🏠</span> Dashboard
+      </a>
+      <!-- Only show Pilot-specific nav to pilots -->
+      <div class="nav-section-label" sec:authorize="hasRole('PILOT')">Flight Plans</div>
+      <a href="/flights/submit" class="nav-link-item active" id="nav-submit"
+         sec:authorize="hasRole('PILOT')">
+        <span class="nav-icon">📝</span> Submit Flight Plan
+      </a>
+      <a href="/flights" class="nav-link-item" id="nav-flights">
+        <span class="nav-icon">✈</span> My Flights
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" style="background: linear-gradient(135deg,#22c55e,#06b6d4)">P</div>
+        <div class="user-info">
+          <div class="user-name" sec:authentication="name">Pilot</div>
+          <div class="user-role">Pilot</div>
+        </div>
+      </div>
+      <form th:action="@{/logout}" method="post">
+        <button class="btn-atc btn-ghost w-full" type="submit" id="logoutBtn">⎋ Sign Out</button>
+      </form>
+    </div>
+  </aside>
 
+  <!-- ── Main ── -->
+  <main class="atc-main">
+    <header class="atc-topbar">
+      <div class="topbar-title">
+        Submit Flight Plan
+        <small>File a new plan for ATC clearance</small>
+      </div>
+      <div class="flex-center gap-12">
+        <a href="/flights" class="btn-atc btn-ghost btn-sm" id="btn-back">← My Flights</a>
+      </div>
+    </header>
+
+    <div class="atc-content" style="max-width: 640px;">
+
+      <!-- This page is Pilot-only; show a locked state for other roles -->
+      <div sec:authorize="!hasRole('PILOT')" class="glass-card" style="text-align:center;padding:48px">
+        <div style="font-size:48px;margin-bottom:16px">🔒</div>
+        <h2 style="margin-bottom:12px">Pilots Only</h2>
+        <p class="text-muted" style="margin-bottom:24px">
+          Flight plan submission is restricted to Pilot accounts.
+          Your current role does not have this permission.
+        </p>
+        <a href="/dashboard" class="btn-atc btn-primary" id="btn-back-dashboard">← Back to Dashboard</a>
+      </div>
+
+      <!-- The actual form, shown only to pilots -->
+      <div sec:authorize="hasRole('PILOT')">
+        <div class="glass-card">
+          <form th:action="@{/flights/submit}" th:object="${flight}" method="post" id="flightSubmitForm">
+
+            <div class="form-group">
+              <label class="form-label" for="flightId">✈ Flight ID</label>
+              <input id="flightId" type="text" th:field="*{flightId}" class="form-control"
+                     placeholder="e.g. AI-202" required/>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="source">🛫 Source Airport</label>
+                <input id="source" type="text" th:field="*{source}" class="form-control"
+                       placeholder="e.g. Delhi (DEL)" required/>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="destination">🛬 Destination Airport</label>
+                <input id="destination" type="text" th:field="*{destination}" class="form-control"
+                       placeholder="e.g. Mumbai (BOM)" required/>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="scheduledDeparture">🕐 Scheduled Departure</label>
+                <input id="scheduledDeparture" type="datetime-local" th:field="*{scheduledDeparture}"
+                       class="form-control" required/>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="scheduledArrival">🕓 Scheduled Arrival</label>
+                <input id="scheduledArrival" type="datetime-local" th:field="*{scheduledArrival}"
+                       class="form-control"/>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="flex-center gap-8">
+              <button type="submit" class="btn-atc btn-primary" id="submitFlightBtn">
+                📝 Submit Flight Plan
+              </button>
+              <a href="/flights" class="btn-atc btn-ghost" id="cancelFlightBtn">Cancel</a>
+            </div>
+          </form>
+        </div>
+
+        <div class="glass-card mt-24">
+          <div class="section-header mb-0"><div><h2>What happens next?</h2></div></div>
+          <div class="divider"></div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div class="flex-center gap-12">
+              <span class="badge badge-pending">1. PENDING</span>
+              <span class="text-sm text-muted">Your plan is submitted and awaiting ATC review</span>
+            </div>
+            <div class="flex-center gap-12">
+              <span class="badge badge-approved">2. APPROVED</span>
+              <span class="text-sm text-muted">ATC has cleared your flight for departure</span>
+            </div>
+            <div class="flex-center gap-12">
+              <span class="badge badge-in-progress">3. IN PROGRESS</span>
+              <span class="text-sm text-muted">Your flight is currently airborne</span>
+            </div>
+            <div class="flex-center gap-12">
+              <span class="badge badge-landed">4. LANDED</span>
+              <span class="text-sm text-muted">Flight complete — safe landing confirmed</span>
+            </div>
+          </div>
+        </div>
+      </div><!-- /pilot-only -->
+
+    </div>
+  </main>
+</div>
+</body>
+</html>

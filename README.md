@@ -208,7 +208,7 @@ spring.jpa.hibernate.ddl-auto=update
 ```bash
 git clone https://github.com/your-username/atc-system.git
 cd atc-system
-mvn spring-boot:run
+./mvnw spring-boot:run
 ```
 
 Access the app at:
