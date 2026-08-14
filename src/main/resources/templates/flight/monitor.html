@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Live Flight Monitor — ATC</title>
+  <meta name="description" content="ATC: Real-time active and pending flight monitoring"/>
+  <link rel="stylesheet" th:href="@{/css/atc-theme.css}"/>
+</head>
+<body>
+<div class="atc-shell">
+
+  <!-- ── Sidebar ── -->
+  <aside class="atc-sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">🗼</div>
+      <h1>ATC Tower</h1>
+      <span>Controller Workstation</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="/dashboard" class="nav-link-item" id="nav-dashboard">
+        <span class="nav-icon">🏠</span> Dashboard
+      </a>
+      <div class="nav-section-label">Flight Control</div>
+      <a href="/flights" class="nav-link-item" id="nav-flights">
+        <span class="nav-icon">✈</span> Flight Plans
+      </a>
+      <a href="/flights/monitor" class="nav-link-item active" id="nav-monitor"
+         sec:authorize="hasRole('ATC_CONTROLLER')">
+        <span class="nav-icon">📡</span> Live Monitor
+      </a>
+      <div class="nav-section-label" sec:authorize="hasRole('ATC_CONTROLLER')">Runway Operations</div>
+      <a href="/runways" class="nav-link-item" id="nav-runways"
+         sec:authorize="hasRole('ATC_CONTROLLER')">
+        <span class="nav-icon">🛬</span> All Runways
+      </a>
+      <a href="/runways/assign" class="nav-link-item" id="nav-assign"
+         sec:authorize="hasRole('ATC_CONTROLLER')">
+        <span class="nav-icon">📋</span> Assign Runway
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" style="background: linear-gradient(135deg,#3b82f6,#06b6d4)">C</div>
+        <div class="user-info">
+          <div class="user-name" sec:authentication="name">Controller</div>
+          <div class="user-role">ATC Controller</div>
+        </div>
+      </div>
+      <form th:action="@{/logout}" method="post">
+        <button class="btn-atc btn-ghost w-full" type="submit" id="logoutBtn">⎋ Sign Out</button>
+      </form>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="atc-main">
+    <header class="atc-topbar">
+      <div class="topbar-title">
+        Live Airspace Monitor
+        <small>Real-time flight tracking</small>
+      </div>
+      <div class="flex-center gap-12">
+        <span class="badge badge-in-progress">● Live</span>
+        <a href="/flights" class="btn-atc btn-ghost btn-sm" id="btn-all-flights">All Flights</a>
+      </div>
+    </header>
+
+    <div class="atc-content">
+
+      <div class="stat-grid mb-24">
+        <div class="stat-card blue anim-delay-1">
+          <div class="stat-icon">📡</div>
+          <div class="stat-value" th:text="${#lists.size(activeFlights)}">0</div>
+          <div class="stat-label">Active / Airborne</div>
+        </div>
+        <div class="stat-card amber anim-delay-2">
+          <div class="stat-icon">⏳</div>
+          <div class="stat-value" th:text="${#lists.size(pendingFlights)}">0</div>
+          <div class="stat-label">Pending Approval</div>
+        </div>
+      </div>
+
+      <!-- Active Flights -->
+      <div class="section-header">
+        <div><h2>In-Progress Flights</h2><p>Currently airborne aircraft</p></div>
+      </div>
+      <div class="atc-table-wrap mb-24">
+        <table class="atc-table">
+          <thead>
+            <tr>
+              <th>Flight ID</th><th>From</th><th>To</th>
+              <th>Status</th><th>Runway</th><th>Pilot</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="f : ${activeFlights}">
+              <td><strong class="mono" th:text="${f.flightId}"></strong></td>
+              <td th:text="${f.source}"></td>
+              <td th:text="${f.destination}"></td>
+              <td><span class="badge badge-in-progress">In Progress</span></td>
+              <td><span class="mono text-sm" th:text="${f.runway != null ? f.runway.runwayId : '—'}"></span></td>
+              <td class="text-sm" th:text="${f.pilot != null ? f.pilot.name : '—'}"></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(activeFlights)}">
+              <td colspan="6">
+                <div class="empty-state">
+                  <div class="empty-icon">📡</div>
+                  <p>No active flights in the airspace.</p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pending Flights — approve/reject only for ATC -->
+      <div class="section-header">
+        <div><h2>Pending Clearances</h2><p>Awaiting ATC approval</p></div>
+        <a href="/flights" class="btn-atc btn-warning btn-sm" id="btn-review"
+           sec:authorize="hasRole('ATC_CONTROLLER')">Review All →</a>
+      </div>
+      <div class="atc-table-wrap">
+        <table class="atc-table">
+          <thead>
+            <tr>
+              <th>Flight ID</th><th>From</th><th>To</th>
+              <th>Scheduled Departure</th><th>Status</th>
+              <th sec:authorize="hasRole('ATC_CONTROLLER')">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="f : ${pendingFlights}">
+              <td><strong class="mono" th:text="${f.flightId}"></strong></td>
+              <td th:text="${f.source}"></td>
+              <td th:text="${f.destination}"></td>
+              <td class="mono text-sm"
+                  th:text="${f.scheduledDeparture != null ? #temporals.format(f.scheduledDeparture, 'dd MMM HH:mm') : '—'}"></td>
+              <td><span class="badge badge-pending">Pending</span></td>
+              <td sec:authorize="hasRole('ATC_CONTROLLER')">
+                <form th:action="@{/flights/{id}/approve(id=${f.flightId})}" method="post" style="display:inline">
+                  <button class="btn-atc btn-success btn-xs" type="submit"
+                          th:id="${'approve-' + f.flightId}">✓ Approve</button>
+                </form>
+                <form th:action="@{/flights/{id}/reject(id=${f.flightId})}" method="post" style="display:inline">
+                  <input name="reason" placeholder="Reason…"
+                         style="background:rgba(255,255,255,0.06);border:1px solid var(--border);
+                                border-radius:4px;padding:3px 8px;color:var(--text-primary);
+                                font-size:11px;width:100px;"/>
+                  <button class="btn-atc btn-danger btn-xs" type="submit"
+                          th:id="${'reject-' + f.flightId}">✕ Reject</button>
+                </form>
+              </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(pendingFlights)}">
+              <td colspan="6">
+                <div class="empty-state">
+                  <div class="empty-icon">✅</div>
+                  <p>No pending flight plans — all clear!</p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>

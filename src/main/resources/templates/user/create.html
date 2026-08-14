@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create User — ATC Admin</title>
+  <meta name="description" content="Admin: Create a new system user"/>
+  <link rel="stylesheet" th:href="@{/css/atc-theme.css}"/>
+</head>
+<body>
+<div class="atc-shell">
+
+  <!-- ── Sidebar ── -->
+  <aside class="atc-sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">✈</div>
+      <h1>ATC System</h1>
+      <span>Administrator Panel</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="/dashboard" class="nav-link-item" id="nav-dashboard">
+        <span class="nav-icon">🏠</span> Dashboard
+      </a>
+      <div class="nav-section-label">Management</div>
+      <a href="/users" class="nav-link-item" id="nav-users">
+        <span class="nav-icon">👥</span> Manage Users
+      </a>
+      <a href="/users/create" class="nav-link-item active" id="nav-create-user">
+        <span class="nav-icon">➕</span> Create User
+      </a>
+      <div class="nav-section-label">Flights &amp; Runways</div>
+      <a href="/flights" class="nav-link-item" id="nav-flights">
+        <span class="nav-icon">✈</span> All Flights
+      </a>
+      <a href="/runways" class="nav-link-item" id="nav-runways">
+        <span class="nav-icon">🛬</span> Runways
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar">A</div>
+        <div class="user-info">
+          <div class="user-name" sec:authentication="name">Admin</div>
+          <div class="user-role">Administrator</div>
+        </div>
+      </div>
+      <form th:action="@{/logout}" method="post">
+        <button class="btn-atc btn-ghost w-full" type="submit" id="logoutBtn">⎋ Sign Out</button>
+      </form>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="atc-main">
+    <header class="atc-topbar">
+      <div class="topbar-title">
+        Create New User
+        <small>Add a pilot, controller, or administrator</small>
+      </div>
+      <div class="flex-center gap-12">
+        <a href="/users" class="btn-atc btn-ghost btn-sm" id="btn-back">← Back to Users</a>
+      </div>
+    </header>
+
+    <div class="atc-content" style="max-width: 640px;">
+
+      <div class="glass-card">
+        <form id="createUserForm" th:action="@{/users/create}" method="post">
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="name">Full Name</label>
+              <input id="name" type="text" name="name" class="form-control"
+                     placeholder="e.g. Captain Jane Doe" required/>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="email">Email Address</label>
+              <input id="email" type="email" name="email" class="form-control"
+                     placeholder="user@atc.com" required/>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="password">Password</label>
+              <input id="password" type="password" name="password" class="form-control"
+                     placeholder="Min. 6 characters" required minlength="6"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="role">Role</label>
+              <select id="role" name="role" class="form-control" onchange="toggleRoleFields(this.value)" required>
+                <option value="" disabled selected>— Select Role —</option>
+                <option value="PILOT">Pilot</option>
+                <option value="ATC_CONTROLLER">ATC Controller</option>
+                <option value="ADMINISTRATOR">Administrator</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Pilot-specific field -->
+          <div id="pilotFields" style="display:none">
+            <div class="form-group">
+              <label class="form-label" for="licenseNumber">Pilot License Number</label>
+              <input id="licenseNumber" type="text" name="licenseNumber" class="form-control"
+                     placeholder="e.g. PL-1234567"/>
+            </div>
+          </div>
+
+          <!-- ATC-specific field -->
+          <div id="atcFields" style="display:none">
+            <div class="form-group">
+              <label class="form-label" for="stationCode">Station Code</label>
+              <input id="stationCode" type="text" name="stationCode" class="form-control"
+                     placeholder="e.g. JFK-TWR"/>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="flex-center gap-8">
+            <button type="submit" class="btn-atc btn-primary" id="submitBtn">
+              ➕ Create User
+            </button>
+            <a href="/users" class="btn-atc btn-ghost" id="cancelBtn">Cancel</a>
+          </div>
+        </form>
+      </div>
+
+      <!-- Role info cards -->
+      <div class="stat-grid mt-24">
+        <div class="stat-card cyan anim-delay-1" style="cursor:default">
+          <div class="stat-icon">🧑‍✈️</div>
+          <div class="stat-label" style="font-size:13px;font-weight:600;color:var(--text-primary)">Pilot</div>
+          <div class="text-muted text-sm">Can submit and track flight plans</div>
+        </div>
+        <div class="stat-card blue anim-delay-2" style="cursor:default">
+          <div class="stat-icon">🗼</div>
+          <div class="stat-label" style="font-size:13px;font-weight:600;color:var(--text-primary)">ATC Controller</div>
+          <div class="text-muted text-sm">Approves flights and assigns runways</div>
+        </div>
+        <div class="stat-card purple anim-delay-3" style="cursor:default">
+          <div class="stat-icon">🛡</div>
+          <div class="stat-label" style="font-size:13px;font-weight:600;color:var(--text-primary)">Administrator</div>
+          <div class="text-muted text-sm">Full system access and user management</div>
+        </div>
+      </div>
+
+    </div><!-- /atc-content -->
+  </main>
+</div>
+
+<script>
+function toggleRoleFields(role) {
+  document.getElementById('pilotFields').style.display = role === 'PILOT' ? 'block' : 'none';
+  document.getElementById('atcFields').style.display   = role === 'ATC_CONTROLLER' ? 'block' : 'none';
+}
+</script>
+</body>
+</html>

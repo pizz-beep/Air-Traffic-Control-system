@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Assign Runway — ATC System</title>
+  <meta name="description" content="ATC: Assign an available runway to an approved flight"/>
+  <link rel="stylesheet" th:href="@{/css/atc-theme.css}"/>
+</head>
+<body>
+<div class="atc-shell">
+
+  <!-- ── Sidebar ── -->
+  <aside class="atc-sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">🗼</div>
+      <h1>ATC Tower</h1>
+      <span>Controller Workstation</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="/dashboard" class="nav-link-item" id="nav-dashboard">
+        <span class="nav-icon">🏠</span> Dashboard
+      </a>
+      <div class="nav-section-label">Flight Control</div>
+      <a href="/flights" class="nav-link-item" id="nav-flights">
+        <span class="nav-icon">✈</span> Flight Plans
+      </a>
+      <a href="/flights/monitor" class="nav-link-item" id="nav-monitor"
+         sec:authorize="hasRole('ATC_CONTROLLER')">
+        <span class="nav-icon">📡</span> Live Monitor
+      </a>
+      <div class="nav-section-label" sec:authorize="hasRole('ATC_CONTROLLER')">Runway Operations</div>
+      <a href="/runways" class="nav-link-item" id="nav-runways"
+         sec:authorize="hasRole('ATC_CONTROLLER')">
+        <span class="nav-icon">🛬</span> All Runways
+      </a>
+      <a href="/runways/assign" class="nav-link-item active" id="nav-assign"
+         sec:authorize="hasRole('ATC_CONTROLLER')">
+        <span class="nav-icon">📋</span> Assign Runway
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" style="background: linear-gradient(135deg,#3b82f6,#06b6d4)">C</div>
+        <div class="user-info">
+          <div class="user-name" sec:authentication="name">Controller</div>
+          <div class="user-role">
+            <span sec:authorize="hasRole('ATC_CONTROLLER')">ATC Controller</span>
+            <span sec:authorize="!hasRole('ATC_CONTROLLER')" sec:authentication="name">User</span>
+          </div>
+        </div>
+      </div>
+      <form th:action="@{/logout}" method="post">
+        <button class="btn-atc btn-ghost w-full" type="submit" id="logoutBtn">⎋ Sign Out</button>
+      </form>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="atc-main">
+    <header class="atc-topbar">
+      <div class="topbar-title">
+        Assign Runway
+        <small>Allocate an available runway to an approved flight</small>
+      </div>
+      <div class="flex-center gap-12">
+        <a href="/runways" class="btn-atc btn-ghost btn-sm" id="btn-runway-list">← Runway Board</a>
+      </div>
+    </header>
+
+    <div class="atc-content" style="max-width: 540px;">
+
+      <!-- Locked state for non-ATC -->
+      <div sec:authorize="!hasRole('ATC_CONTROLLER')" class="glass-card" style="text-align:center;padding:48px">
+        <div style="font-size:48px;margin-bottom:16px">🔒</div>
+        <h2 style="margin-bottom:12px">ATC Controllers Only</h2>
+        <p class="text-muted" style="margin-bottom:24px">
+          Runway assignment is restricted to Air Traffic Controller accounts.
+          Your current role does not have this permission.
+        </p>
+        <a href="/dashboard" class="btn-atc btn-primary" id="btn-back-dash">← Back to Dashboard</a>
+      </div>
+
+      <!-- ATC-only form -->
+      <div sec:authorize="hasRole('ATC_CONTROLLER')">
+        <div class="glass-card">
+          <form action="/runways/assign" method="post" id="assignRunwayForm">
+
+            <div class="form-group">
+              <label class="form-label" for="flightId">✈ Flight ID</label>
+              <input id="flightId" type="text" name="flightId" class="form-control"
+                     placeholder="Enter approved flight ID (e.g. AI-202)" required/>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="runwayId">🛬 Select Available Runway</label>
+              <select id="runwayId" name="runwayId" class="form-control" required>
+                <option value="" disabled selected>— Choose Runway —</option>
+                <option th:each="r : ${available}"
+                        th:value="${r.runwayId}"
+                        th:text="${r.runwayId + ' · Dir: ' + (r.direction != null ? r.direction : 'N/A') + ' · ' + (r.lengthMeters != null ? r.lengthMeters + 'm' : '')}"></option>
+              </select>
+              <p th:if="${#lists.isEmpty(available)}"
+                 style="margin-top:8px;font-size:12px;color:var(--accent-amber)">
+                ⚠ No available runways at the moment.
+              </p>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="flex-center gap-8">
+              <button type="submit" class="btn-atc btn-warning" id="assignBtn"
+                      th:disabled="${#lists.isEmpty(available)}">
+                📋 Assign Runway
+              </button>
+              <a href="/runways" class="btn-atc btn-ghost" id="cancelBtn">Cancel</a>
+            </div>
+          </form>
+        </div>
+
+        <div class="glass-card mt-24">
+          <div class="section-header mb-0"><div><h2>Usage Notes</h2></div></div>
+          <div class="divider"></div>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:10px;">
+            <li class="flex-center gap-8 text-sm text-muted"><span>✓</span> Only approved flights can be assigned a runway</li>
+            <li class="flex-center gap-8 text-sm text-muted"><span>✓</span> Only AVAILABLE runways appear in the list</li>
+            <li class="flex-center gap-8 text-sm text-muted"><span>✓</span> After assignment, the runway is marked OCCUPIED</li>
+            <li class="flex-center gap-8 text-sm text-muted"><span>✓</span> Release the runway from the Runway Board after landing</li>
+          </ul>
+        </div>
+      </div><!-- /atc-only -->
+
+    </div>
+  </main>
+</div>
+</body>
+</html>

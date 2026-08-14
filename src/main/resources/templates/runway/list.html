@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Runway Status Board — ATC System</title>
+  <meta name="description" content="View, manage and assign runways"/>
+  <link rel="stylesheet" th:href="@{/css/atc-theme.css}"/>
+</head>
+<body>
+<div class="atc-shell">
+
+  <!-- ── Sidebar ── -->
+  <aside class="atc-sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">🛬</div>
+      <h1>ATC System</h1>
+      <span sec:authorize="hasRole('ATC_CONTROLLER')">Controller Workstation</span>
+      <span sec:authorize="hasRole('ADMINISTRATOR')">Administrator Panel</span>
+      <span sec:authorize="hasRole('PILOT')">Pilot Portal</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="/dashboard" class="nav-link-item" id="nav-dashboard">
+        <span class="nav-icon">🏠</span> Dashboard
+      </a>
+
+      <!-- ATC links -->
+      <div class="nav-section-label" sec:authorize="hasRole('ATC_CONTROLLER')">Flight Control</div>
+      <a href="/flights" class="nav-link-item" id="nav-flights-atc"
+         sec:authorize="hasRole('ATC_CONTROLLER')">
+        <span class="nav-icon">✈</span> Flight Plans
+      </a>
+      <a href="/flights/monitor" class="nav-link-item" id="nav-monitor"
+         sec:authorize="hasRole('ATC_CONTROLLER')">
+        <span class="nav-icon">📡</span> Live Monitor
+      </a>
+      <div class="nav-section-label" sec:authorize="hasRole('ATC_CONTROLLER')">Runway Operations</div>
+      <a href="/runways" class="nav-link-item active" id="nav-runways-atc"
+         sec:authorize="hasRole('ATC_CONTROLLER')">
+        <span class="nav-icon">🛬</span> All Runways
+      </a>
+      <a href="/runways/assign" class="nav-link-item" id="nav-assign"
+         sec:authorize="hasRole('ATC_CONTROLLER')">
+        <span class="nav-icon">📋</span> Assign Runway
+      </a>
+
+      <!-- Admin links -->
+      <div class="nav-section-label" sec:authorize="hasRole('ADMINISTRATOR')">Management</div>
+      <a href="/users" class="nav-link-item" id="nav-users"
+         sec:authorize="hasRole('ADMINISTRATOR')">
+        <span class="nav-icon">👥</span> Manage Users
+      </a>
+      <div class="nav-section-label" sec:authorize="hasRole('ADMINISTRATOR')">Runways</div>
+      <a href="/runways" class="nav-link-item active" id="nav-runways-admin"
+         sec:authorize="hasRole('ADMINISTRATOR')">
+        <span class="nav-icon">🛬</span> All Runways
+      </a>
+      <a href="/runways/create" class="nav-link-item" id="nav-create-runway"
+         sec:authorize="hasRole('ADMINISTRATOR')">
+        <span class="nav-icon">➕</span> Add Runway
+      </a>
+
+      <!-- Pilot links -->
+      <div class="nav-section-label" sec:authorize="hasRole('PILOT')">Flights</div>
+      <a href="/flights" class="nav-link-item" id="nav-flights-pilot"
+         sec:authorize="hasRole('PILOT')">
+        <span class="nav-icon">✈</span> My Flights
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar">U</div>
+        <div class="user-info">
+          <div class="user-name" sec:authentication="name">User</div>
+          <div class="user-role">
+            <span sec:authorize="hasRole('ATC_CONTROLLER')">ATC Controller</span>
+            <span sec:authorize="hasRole('ADMINISTRATOR')">Administrator</span>
+            <span sec:authorize="hasRole('PILOT')">Pilot</span>
+          </div>
+        </div>
+      </div>
+      <form th:action="@{/logout}" method="post">
+        <button class="btn-atc btn-ghost w-full" type="submit" id="logoutBtn">⎋ Sign Out</button>
+      </form>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="atc-main">
+    <header class="atc-topbar">
+      <div class="topbar-title">
+        Runway Status Board
+        <small>All runways and current availability</small>
+      </div>
+      <div class="flex-center gap-12">
+        <!-- Admin: add runway -->
+        <a href="/runways/create" class="btn-atc btn-purple btn-sm" id="btn-add-runway"
+           sec:authorize="hasRole('ADMINISTRATOR')">+ Add Runway</a>
+        <!-- ATC: assign runway -->
+        <a href="/runways/assign" class="btn-atc btn-warning btn-sm" id="btn-assign"
+           sec:authorize="hasRole('ATC_CONTROLLER')">📋 Assign Runway</a>
+        <!-- Non-privileged -->
+        <span class="badge badge-pilot" sec:authorize="hasRole('PILOT')">Read Only</span>
+      </div>
+    </header>
+
+    <div class="atc-content">
+
+      <!-- Flash messages -->
+      <div th:if="${successMsg}" class="alert-flash alert-success" th:text="${successMsg}"></div>
+      <div th:if="${errorMsg}"   class="alert-flash alert-error"   th:text="${errorMsg}"></div>
+
+      <!-- Read-only notice for Pilots -->
+      <div class="alert-flash alert-info mb-16" sec:authorize="hasRole('PILOT')">
+        ℹ You have read-only access to runway information. Runway operations are restricted to ATC Controllers and Administrators.
+      </div>
+
+      <!-- Stat Cards -->
+      <div class="stat-grid mb-24">
+        <div class="stat-card green anim-delay-1">
+          <div class="stat-icon">✅</div>
+          <div class="stat-value" th:text="${availableCount}">0</div>
+          <div class="stat-label">Available</div>
+        </div>
+        <div class="stat-card red anim-delay-2">
+          <div class="stat-icon">🔴</div>
+          <div class="stat-value" th:text="${occupiedCount}">0</div>
+          <div class="stat-label">Occupied</div>
+        </div>
+        <div class="stat-card amber anim-delay-3">
+          <div class="stat-icon">🔧</div>
+          <div class="stat-value" th:text="${maintenanceCount}">0</div>
+          <div class="stat-label">Maintenance</div>
+        </div>
+        <div class="stat-card purple anim-delay-4">
+          <div class="stat-icon">⛔</div>
+          <div class="stat-value" th:text="${closedCount}">0</div>
+          <div class="stat-label">Closed</div>
+        </div>
+      </div>
+
+      <!-- Runway Table -->
+      <div class="section-header">
+        <div>
+          <h2>All Runways</h2>
+          <p>Live status of every registered runway</p>
+        </div>
+      </div>
+      <div class="atc-table-wrap">
+        <table class="atc-table">
+          <thead>
+            <tr>
+              <th>Runway ID</th>
+              <th>Direction</th>
+              <th>Length (m)</th>
+              <th>Status</th>
+              <!-- Admin: status change + delete -->
+              <th sec:authorize="hasRole('ADMINISTRATOR')">Change Status</th>
+              <!-- ATC: release -->
+              <th sec:authorize="hasRole('ATC_CONTROLLER')">Release</th>
+              <!-- Admin: delete -->
+              <th sec:authorize="hasRole('ADMINISTRATOR')">Delete</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="r : ${runways}">
+              <td><strong class="mono" th:text="${r.runwayId}"></strong></td>
+              <td>
+                <span class="badge badge-atc mono" th:text="${r.direction != null ? r.direction : '—'}"></span>
+              </td>
+              <td>
+                <span th:if="${r.lengthMeters != null}"
+                      th:text="${r.lengthMeters + ' m'}"></span>
+                <span th:if="${r.lengthMeters == null}" class="text-muted">—</span>
+              </td>
+              <td>
+                <span th:switch="${r.status.name()}">
+                  <span th:case="'AVAILABLE'"   class="badge badge-available">Available</span>
+                  <span th:case="'OCCUPIED'"    class="badge badge-occupied">Occupied</span>
+                  <span th:case="'MAINTENANCE'" class="badge badge-maintenance">Maintenance</span>
+                  <span th:case="'CLOSED'"      class="badge badge-closed">Closed</span>
+                  <span th:case="*"             class="badge" th:text="${r.status}"></span>
+                </span>
+              </td>
+
+              <!-- Admin: change status dropdown -->
+              <td sec:authorize="hasRole('ADMINISTRATOR')">
+                <form th:action="@{/runways/{id}/status(id=${r.runwayId})}" method="post"
+                      style="display:flex;gap:6px;align-items:center;">
+                  <select name="status" class="form-control"
+                          style="padding:4px 8px;font-size:11px;width:130px;"
+                          th:id="${'status-select-' + r.runwayId}">
+                    <option th:each="s : ${statuses}"
+                            th:value="${s}"
+                            th:text="${s.name()}"
+                            th:selected="${s == r.status}"></option>
+                  </select>
+                  <button class="btn-atc btn-ghost btn-xs" type="submit"
+                          th:id="${'status-btn-' + r.runwayId}">✓</button>
+                </form>
+              </td>
+
+              <!-- ATC: release button -->
+              <td sec:authorize="hasRole('ATC_CONTROLLER')">
+                <form th:action="@{/runways/{id}/release(id=${r.runwayId})}" method="post"
+                      style="display:inline">
+                  <button class="btn-atc btn-ghost btn-xs" type="submit"
+                          th:id="${'release-' + r.runwayId}"
+                          th:disabled="${r.status.name() != 'OCCUPIED'}"
+                          th:title="${r.status.name() != 'OCCUPIED' ? 'Only OCCUPIED runways can be released' : 'Release this runway'}">
+                    ↩ Release
+                  </button>
+                </form>
+              </td>
+
+              <!-- Admin: delete button -->
+              <td sec:authorize="hasRole('ADMINISTRATOR')">
+                <form th:action="@{/runways/{id}/delete(id=${r.runwayId})}" method="post"
+                      style="display:inline"
+                      onsubmit="return confirm('Delete runway ' + '[[${r.runwayId}]]' + '? This cannot be undone.')">
+                  <button class="btn-atc btn-danger btn-xs" type="submit"
+                          th:id="${'delete-' + r.runwayId}"
+                          th:disabled="${r.status.name() == 'OCCUPIED'}"
+                          th:title="${r.status.name() == 'OCCUPIED' ? 'Release runway before deleting' : 'Delete this runway'}">
+                    🗑 Delete
+                  </button>
+                </form>
+              </td>
+
+            </tr>
+            <tr th:if="${#lists.isEmpty(runways)}">
+              <td colspan="7">
+                <div class="empty-state">
+                  <div class="empty-icon">🛬</div>
+                  <p>No runways in the system.
+                    <span sec:authorize="hasRole('ADMINISTRATOR')">
+                      <a href="/runways/create" style="color:var(--accent-blue)">Add the first runway →</a>
+                    </span>
+                  </p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>

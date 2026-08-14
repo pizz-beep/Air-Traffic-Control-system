@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pilot Dashboard — ATC System</title>
+  <meta name="description" content="Pilot portal for submitting and tracking flight plans"/>
+  <link rel="stylesheet" th:href="@{/css/atc-theme.css}"/>
+</head>
+<body>
+<div class="atc-shell">
+
+  <!-- ── Sidebar ── -->
+  <aside class="atc-sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">🧑‍✈️</div>
+      <h1>Pilot Portal</h1>
+      <span>Flight Operations</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="/dashboard" class="nav-link-item active" id="nav-dashboard">
+        <span class="nav-icon">🏠</span> Dashboard
+      </a>
+
+      <div class="nav-section-label">Flight Plans</div>
+      <a href="/flights/submit" class="nav-link-item" id="nav-submit">
+        <span class="nav-icon">📝</span> Submit Flight Plan
+      </a>
+      <a href="/flights" class="nav-link-item" id="nav-flights">
+        <span class="nav-icon">✈</span> My Flights
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" style="background: linear-gradient(135deg,#22c55e,#06b6d4)">P</div>
+        <div class="user-info">
+          <div class="user-name" sec:authentication="name">Pilot</div>
+          <div class="user-role">Pilot</div>
+        </div>
+      </div>
+      <form th:action="@{/logout}" method="post">
+        <button class="btn-atc btn-ghost w-full" type="submit" id="logoutBtn">⎋ Sign Out</button>
+      </form>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="atc-main">
+    <header class="atc-topbar">
+      <div class="topbar-title">
+        Pilot Dashboard
+        <small>Flight plan submission and tracking</small>
+      </div>
+      <div class="flex-center gap-12">
+        <span class="badge badge-pilot">Pilot</span>
+      </div>
+    </header>
+
+    <div class="atc-content">
+
+      <!-- Stat Cards -->
+      <div class="stat-grid mb-24">
+        <div class="stat-card blue anim-delay-1">
+          <div class="stat-icon">✈</div>
+          <div class="stat-value" th:text="${totalFlights != null ? totalFlights : '—'}">—</div>
+          <div class="stat-label">Total Flights</div>
+        </div>
+        <div class="stat-card amber anim-delay-2">
+          <div class="stat-icon">⏳</div>
+          <div class="stat-value" th:text="${pendingFlights != null ? pendingFlights : '—'}">—</div>
+          <div class="stat-label">Pending Review</div>
+        </div>
+        <div class="stat-card green anim-delay-3">
+          <div class="stat-icon">✅</div>
+          <div class="stat-value" th:text="${approvedFlights != null ? approvedFlights : '—'}">—</div>
+          <div class="stat-label">Approved</div>
+        </div>
+        <div class="stat-card red anim-delay-4">
+          <div class="stat-icon">❌</div>
+          <div class="stat-value" th:text="${rejectedFlights != null ? rejectedFlights : '—'}">—</div>
+          <div class="stat-label">Rejected</div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="section-header">
+        <div>
+          <h2>Flight Operations</h2>
+          <p>Manage your flight plans</p>
+        </div>
+      </div>
+      <div class="action-grid mb-24">
+        <a href="/flights/submit" class="action-card" id="action-submit"
+           style="--action-color: var(--accent-green)">
+          <div class="action-icon">📝</div>
+          <div class="action-title">Submit Flight Plan</div>
+          <div class="action-desc">File a new flight plan for ATC review and clearance</div>
+        </a>
+        <a href="/flights" class="action-card" id="action-flights"
+           style="--action-color: var(--accent-blue)">
+          <div class="action-icon">✈</div>
+          <div class="action-title">View All Flights</div>
+          <div class="action-desc">Track the status of all your submitted flight plans</div>
+        </a>
+      </div>
+
+
+
+    </div><!-- /atc-content -->
+  </main>
+</div>
+</body>
+</html>

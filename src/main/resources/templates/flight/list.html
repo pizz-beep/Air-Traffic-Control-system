@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Flight Plans — ATC System</title>
+  <meta name="description" content="View, approve, and reject all flight plans"/>
+  <link rel="stylesheet" th:href="@{/css/atc-theme.css}"/>
+</head>
+<body>
+<div class="atc-shell">
+
+  <!-- ── Sidebar ── -->
+  <aside class="atc-sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">✈</div>
+      <h1>ATC System</h1>
+      <span>Flight Operations</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="/dashboard" class="nav-link-item" id="nav-dashboard">
+        <span class="nav-icon">🏠</span> Dashboard
+      </a>
+
+      <!-- Flights section — visible to all authenticated -->
+      <div class="nav-section-label">Flights</div>
+      <a href="/flights" class="nav-link-item active" id="nav-flights">
+        <span class="nav-icon">✈</span> All Flights
+      </a>
+
+      <!-- Pilot-only link -->
+      <a href="/flights/submit" class="nav-link-item" id="nav-submit"
+         sec:authorize="hasRole('PILOT')">
+        <span class="nav-icon">📝</span> Submit Plan
+      </a>
+
+      <!-- ATC-only links -->
+      <a href="/flights/monitor" class="nav-link-item" id="nav-monitor"
+         sec:authorize="hasRole('ATC_CONTROLLER')">
+        <span class="nav-icon">📡</span> Live Monitor
+      </a>
+
+      <!-- ATC-only runway links -->
+      <div class="nav-section-label" sec:authorize="hasRole('ATC_CONTROLLER')">Runways</div>
+      <a href="/runways" class="nav-link-item" id="nav-runways"
+         sec:authorize="hasRole('ATC_CONTROLLER')">
+        <span class="nav-icon">🛬</span> Runways
+      </a>
+      <a href="/runways/assign" class="nav-link-item" id="nav-assign"
+         sec:authorize="hasRole('ATC_CONTROLLER')">
+        <span class="nav-icon">📋</span> Assign Runway
+      </a>
+
+      <!-- Admin-only links -->
+      <div class="nav-section-label" sec:authorize="hasRole('ADMINISTRATOR')">Administration</div>
+      <a href="/users" class="nav-link-item" id="nav-users"
+         sec:authorize="hasRole('ADMINISTRATOR')">
+        <span class="nav-icon">👥</span> Manage Users
+      </a>
+      <a href="/runways" class="nav-link-item" id="nav-runways-admin"
+         sec:authorize="hasRole('ADMINISTRATOR')">
+        <span class="nav-icon">🛬</span> Runways
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar">U</div>
+        <div class="user-info">
+          <div class="user-name" sec:authentication="name">User</div>
+          <div class="user-role">
+            <span sec:authorize="hasRole('PILOT')">Pilot</span>
+            <span sec:authorize="hasRole('ATC_CONTROLLER')">ATC Controller</span>
+            <span sec:authorize="hasRole('ADMINISTRATOR')">Administrator</span>
+          </div>
+        </div>
+      </div>
+      <form th:action="@{/logout}" method="post">
+        <button class="btn-atc btn-ghost w-full" type="submit" id="logoutBtn">⎋ Sign Out</button>
+      </form>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="atc-main">
+    <header class="atc-topbar">
+      <div class="topbar-title">
+        Flight Plans
+        <small>All submitted flight plans</small>
+      </div>
+      <div class="flex-center gap-12">
+        <!-- Only pilots can submit -->
+        <a href="/flights/submit" class="btn-atc btn-primary btn-sm" id="btn-submit"
+           sec:authorize="hasRole('PILOT')">+ Submit Plan</a>
+        <!-- Only ATC can monitor -->
+        <a href="/flights/monitor" class="btn-atc btn-cyan btn-sm" id="btn-monitor"
+           sec:authorize="hasRole('ATC_CONTROLLER')">📡 Monitor</a>
+      </div>
+    </header>
+
+    <div class="atc-content">
+
+      <!-- Permission notice for pilots (read-only on this page) -->
+      <div class="alert-flash alert-info mb-16" sec:authorize="hasRole('PILOT')">
+        ℹ You can view all flights here. Use <strong>Submit Plan</strong> in the sidebar to file a new flight.
+      </div>
+      <!-- Permission notice for admin (read-only here) -->
+      <div class="alert-flash alert-info mb-16" sec:authorize="hasRole('ADMINISTRATOR')">
+        ℹ You have read-only access to flights. Approve/Reject actions are restricted to ATC Controllers.
+      </div>
+
+      <div class="atc-table-wrap">
+        <table class="atc-table">
+          <thead>
+            <tr>
+              <th>Flight ID</th>
+              <th>From</th>
+              <th>To</th>
+              <th>Departure</th>
+              <th>Status</th>
+              <th>Remarks</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="f : ${flights}">
+              <td><strong class="mono" th:text="${f.flightId}"></strong></td>
+              <td th:text="${f.source}"></td>
+              <td th:text="${f.destination}"></td>
+              <td class="text-sm mono"
+                  th:text="${f.scheduledDeparture != null ? #temporals.format(f.scheduledDeparture, 'dd MMM HH:mm') : '—'}"></td>
+              <td>
+                <span th:switch="${f.status.name()}">
+                  <span th:case="'PENDING'"     class="badge badge-pending">Pending</span>
+                  <span th:case="'APPROVED'"    class="badge badge-approved">Approved</span>
+                  <span th:case="'REJECTED'"    class="badge badge-rejected">Rejected</span>
+                  <span th:case="'IN_PROGRESS'" class="badge badge-in-progress">In Progress</span>
+                  <span th:case="'LANDED'"      class="badge badge-landed">Landed</span>
+                  <span th:case="'CANCELLED'"   class="badge badge-cancelled">Cancelled</span>
+                  <span th:case="'EMERGENCY'"   class="badge badge-emergency">Emergency</span>
+                  <span th:case="*"             class="badge" th:text="${f.status}"></span>
+                </span>
+              </td>
+              <td class="text-sm text-muted" th:text="${f.remarks != null ? f.remarks : '—'}"></td>
+              <td>
+                <!-- ATC only: Approve + Reject -->
+                <div class="flex-center gap-8" sec:authorize="hasRole('ATC_CONTROLLER')">
+                  <form th:action="@{/flights/{id}/approve(id=${f.flightId})}" method="post" style="display:inline">
+                    <button class="btn-atc btn-success btn-xs" type="submit"
+                            th:id="${'approve-' + f.flightId}"
+                            th:disabled="${f.status.name() != 'PENDING'}">✓ Approve</button>
+                  </form>
+                  <form th:action="@{/flights/{id}/reject(id=${f.flightId})}" method="post" style="display:inline">
+                    <input name="reason" placeholder="Reason…"
+                           style="background:rgba(255,255,255,0.06);border:1px solid var(--border);
+                                  border-radius:4px;padding:3px 8px;color:var(--text-primary);
+                                  font-size:11px;width:110px;"/>
+                    <button class="btn-atc btn-danger btn-xs" type="submit"
+                            th:id="${'reject-' + f.flightId}"
+                            th:disabled="${f.status.name() != 'PENDING'}">✕ Reject</button>
+                  </form>
+                </div>
+                <!-- Non-ATC: show locked badge -->
+                <span class="text-muted text-sm" sec:authorize="!hasRole('ATC_CONTROLLER')">
+                  🔒 ATC only
+                </span>
+              </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(flights)}">
+              <td colspan="7">
+                <div class="empty-state">
+                  <div class="empty-icon">✈</div>
+                  <p>No flight plans found.
+                    <span sec:authorize="hasRole('PILOT')">
+                      <a href="/flights/submit" style="color:var(--accent-blue)">Submit the first one →</a>
+                    </span>
+                  </p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>

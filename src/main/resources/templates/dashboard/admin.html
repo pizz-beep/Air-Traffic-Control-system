@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard — ATC System</title>
+  <meta name="description" content="Administrator control panel for the Air Traffic Control System"/>
+  <link rel="stylesheet" th:href="@{/css/atc-theme.css}"/>
+</head>
+<body>
+<div class="atc-shell">
+
+  <!-- ── Sidebar ── -->
+  <aside class="atc-sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">✈</div>
+      <h1>ATC System</h1>
+      <span>Administrator Panel</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="/dashboard" class="nav-link-item active" id="nav-dashboard">
+        <span class="nav-icon">🏠</span> Dashboard
+      </a>
+
+      <div class="nav-section-label">Management</div>
+      <a href="/users" class="nav-link-item" id="nav-users">
+        <span class="nav-icon">👥</span> Manage Users
+      </a>
+      <a href="/users/create" class="nav-link-item" id="nav-create-user">
+        <span class="nav-icon">➕</span> Create User
+      </a>
+
+      <div class="nav-section-label">Flights &amp; Runways</div>
+      <a href="/flights" class="nav-link-item" id="nav-flights">
+        <span class="nav-icon">✈</span> All Flights
+      </a>
+      <a href="/runways" class="nav-link-item" id="nav-runways">
+        <span class="nav-icon">🛬</span> Runway Board
+      </a>
+      <a href="/runways/create" class="nav-link-item" id="nav-create-runway">
+        <span class="nav-icon">➕</span> Add Runway
+      </a>
+
+      <div class="nav-section-label">System</div>
+      <a href="/h2-console" class="nav-link-item" id="nav-db" target="_blank">
+        <span class="nav-icon">🗄</span> H2 Database
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar">A</div>
+        <div class="user-info">
+          <div class="user-name" sec:authentication="name">Admin</div>
+          <div class="user-role">Administrator</div>
+        </div>
+      </div>
+      <form th:action="@{/logout}" method="post">
+        <button class="btn-atc btn-ghost w-full" type="submit" id="logoutBtn">⎋ Sign Out</button>
+      </form>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="atc-main">
+    <header class="atc-topbar">
+      <div class="topbar-title">
+        Admin Dashboard
+        <small>System-wide control panel</small>
+      </div>
+      <div class="flex-center gap-12">
+        <span class="badge badge-admin">Administrator</span>
+      </div>
+    </header>
+
+    <div class="atc-content">
+
+      <!-- Flash Messages -->
+      <div th:if="${successMsg}" class="alert-flash alert-success" th:text="${successMsg}"></div>
+      <div th:if="${errorMsg}"   class="alert-flash alert-error"   th:text="${errorMsg}"></div>
+
+      <!-- Stat Cards -->
+      <div class="stat-grid mb-24">
+        <div class="stat-card purple anim-delay-1">
+          <div class="stat-icon">👥</div>
+          <div class="stat-value" th:text="${totalUsers}">0</div>
+          <div class="stat-label">Total Users</div>
+        </div>
+        <div class="stat-card cyan anim-delay-2">
+          <div class="stat-icon">🧑‍✈️</div>
+          <div class="stat-value" th:text="${pilotCount}">0</div>
+          <div class="stat-label">Pilots</div>
+        </div>
+        <div class="stat-card blue anim-delay-3">
+          <div class="stat-icon">🗼</div>
+          <div class="stat-value" th:text="${atcCount}">0</div>
+          <div class="stat-label">ATC Controllers</div>
+        </div>
+        <div class="stat-card amber anim-delay-4">
+          <div class="stat-icon">🛡</div>
+          <div class="stat-value" th:text="${adminCount}">0</div>
+          <div class="stat-label">Administrators</div>
+        </div>
+        <div class="stat-card green anim-delay-5">
+          <div class="stat-icon">✈</div>
+          <div class="stat-value" th:text="${totalFlights}">0</div>
+          <div class="stat-label">Total Flights</div>
+        </div>
+        <div class="stat-card cyan anim-delay-6">
+          <div class="stat-icon">🛬</div>
+          <div class="stat-value" th:text="${totalRunways}">0</div>
+          <div class="stat-label">Total Runways</div>
+        </div>
+        <div class="stat-card green anim-delay-6">
+          <div class="stat-icon">✅</div>
+          <div class="stat-value" th:text="${availableRunways}">0</div>
+          <div class="stat-label">Runways Available</div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="section-header">
+        <div>
+          <h2>Quick Actions</h2>
+          <p>Jump to any management area</p>
+        </div>
+      </div>
+      <div class="action-grid mb-24">
+        <a href="/users/create" class="action-card" id="action-create-user"
+           style="--action-color: var(--accent-purple)">
+          <div class="action-icon">➕</div>
+          <div class="action-title">Create New User</div>
+          <div class="action-desc">Add a Pilot, ATC Controller, or Administrator to the system</div>
+        </a>
+        <a href="/users" class="action-card" id="action-manage-users"
+           style="--action-color: var(--accent-cyan)">
+          <div class="action-icon">👥</div>
+          <div class="action-title">Manage Users</div>
+          <div class="action-desc">View, search, and delete system users</div>
+        </a>
+        <a href="/flights" class="action-card" id="action-flights"
+           style="--action-color: var(--accent-blue)">
+          <div class="action-icon">✈</div>
+          <div class="action-title">All Flights</div>
+          <div class="action-desc">View complete flight list across all statuses</div>
+        </a>
+        <a href="/runways" class="action-card" id="action-runways"
+           style="--action-color: var(--accent-green)">
+          <div class="action-icon">🛬</div>
+          <div class="action-title">Runway Board</div>
+          <div class="action-desc">View all runways, change statuses, and delete entries</div>
+        </a>
+        <a href="/runways/create" class="action-card" id="action-create-runway"
+           style="--action-color: var(--accent-cyan)">
+          <div class="action-icon">➕</div>
+          <div class="action-title">Add New Runway</div>
+          <div class="action-desc">Register a new runway in the ATC system</div>
+        </a>
+      </div>
+
+      <!-- User List Preview -->
+      <div class="section-header">
+        <div>
+          <h2>System Users</h2>
+          <p>All registered users</p>
+        </div>
+        <a href="/users/create" class="btn-atc btn-primary" id="btn-add-user">+ Add User</a>
+      </div>
+      <div class="atc-table-wrap mb-24">
+        <table class="atc-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="user : ${users}">
+              <td><span class="mono" th:text="${user.userId}"></span></td>
+              <td><strong th:text="${user.name}"></strong></td>
+              <td><span class="mono text-sm" th:text="${user.email}"></span></td>
+              <td>
+                <span th:class="${'badge badge-' + (user.role.name() == 'PILOT' ? 'pilot' : (user.role.name() == 'ATC_CONTROLLER' ? 'atc' : 'admin'))}"
+                      th:text="${user.role.name() == 'ATC_CONTROLLER' ? 'ATC' : user.role.name()}"></span>
+              </td>
+              <td>
+                <form th:action="@{/users/{id}/delete(id=${user.userId})}" method="post"
+                      style="display:inline"
+                      onsubmit="return confirm('Delete this user?')">
+                  <button class="btn-atc btn-danger btn-xs" type="submit"
+                          th:id="${'delete-user-' + user.userId}">Delete</button>
+                </form>
+              </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(users)}">
+              <td colspan="5">
+                <div class="empty-state">
+                  <div class="empty-icon">👥</div>
+                  <p>No users found in the system.</p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div><!-- /atc-content -->
+  </main>
+</div>
+</body>
+</html>
