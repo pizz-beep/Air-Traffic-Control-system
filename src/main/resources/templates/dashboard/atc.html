@@ -126,7 +126,70 @@
         </a>
       </div>
 
+<<<<<<< HEAD
 
+=======
+      <!-- API Endpoint Reference -->
+      <div class="section-header">
+        <div>
+          <h2>ATC Endpoint Reference</h2>
+          <p>Your authorised API endpoints</p>
+        </div>
+      </div>
+      <div class="glass-card">
+        <div class="atc-table-wrap">
+          <table class="atc-table">
+            <thead>
+              <tr><th>Method</th><th>Endpoint</th><th>Description</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge badge-approved">GET</span></td>
+                <td><span class="mono">/flights</span></td>
+                <td>View all flight plans</td>
+                <td><a href="/flights" class="btn-atc btn-ghost btn-xs" id="ep-flights">Open →</a></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-in-progress">POST</span></td>
+                <td><span class="mono">/flights/{id}/approve</span></td>
+                <td>Approve a flight plan</td>
+                <td><a href="/flights" class="btn-atc btn-ghost btn-xs" id="ep-approve">Open →</a></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-rejected">POST</span></td>
+                <td><span class="mono">/flights/{id}/reject</span></td>
+                <td>Reject a flight plan</td>
+                <td><a href="/flights" class="btn-atc btn-ghost btn-xs" id="ep-reject">Open →</a></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-approved">GET</span></td>
+                <td><span class="mono">/flights/monitor</span></td>
+                <td>Monitor active aircraft</td>
+                <td><a href="/flights/monitor" class="btn-atc btn-ghost btn-xs" id="ep-monitor">Open →</a></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-approved">GET</span></td>
+                <td><span class="mono">/runways</span></td>
+                <td>View all runways</td>
+                <td><a href="/runways" class="btn-atc btn-ghost btn-xs" id="ep-runways">Open →</a></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-in-progress">POST</span></td>
+                <td><span class="mono">/runways/assign</span></td>
+                <td>Assign runway to flight</td>
+                <td><a href="/runways/assign" class="btn-atc btn-ghost btn-xs" id="ep-assign">Open →</a></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-in-progress">POST</span></td>
+                <td><span class="mono">/runways/{id}/release</span></td>
+                <td>Release runway after landing</td>
+                <td><a href="/runways" class="btn-atc btn-ghost btn-xs" id="ep-release">Open →</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+>>>>>>> origin/main
 
     </div><!-- /atc-content -->
   </main>
